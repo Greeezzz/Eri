@@ -118,7 +118,12 @@ export default function Home() {
       const blob = await res.blob();
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'eri-downloader.mp4';
+      // Sanitize filename: remove invalid chars, limit length
+      const sanitized = (data.title || 'video')
+        .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
+        .replace(/\s+/g, '_')
+        .substring(0, 100);
+      a.download = `${sanitized}.mp4`;
       a.click();
       URL.revokeObjectURL(a.href);
       // adegan ending: layar putih
