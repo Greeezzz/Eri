@@ -3,22 +3,68 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from 'motion/react';
 import { Toaster, toast } from 'sonner';
-import { ArrowDown, ClipboardPaste, Loader2 } from 'lucide-react';
-import './eri.css';
+import { ArrowDown, ClipboardPaste, ExternalLink, Loader2 } from 'lucide-react';
 
-const PLATFORMS = ['TikTok', 'Instagram', 'Facebook', 'YouTube'];
+const PLATFORMS = ['TikTok', 'Instagram', 'Facebook', 'YouTube'] as const;
 
-function stampNow() {
+type Quality = 'HD' | 'SD' | 'UNKNOWN';
+
+type Result = {
+  platform: string;
+  title: string;
+  thumbnail: string | null;
+  downloadUrl: string;
+  quality: Quality;
+  mediaType: 'video' | 'image';
+  filename: string;
+};
+
+const QUALITY_LABEL: Record<Quality, string> = {
+  HD: 'HD',
+  SD: 'SD',
+  UNKNOWN: 'kualitas asli',
+};
+
+const PLATFORM_LABEL: Record<string, string> = {
+  tiktok: 'tiktok',
+  instagram: 'instagram',
+  facebook: 'facebook',
+  youtube: 'youtube',
+};
+
+function stampNow(): string {
   const d = new Date();
-  const p = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(
+    d.getMinutes(),
+  )}:${p(d.getSeconds())}`;
 }
 
-/* tombol yang ketarik kursor */
-function Magnetic({ children }: { children: React.ReactNode }) {
+function prefersReducedMotion(): boolean {
+  if (typeof window === 'undefined') return true;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+/** Efek kursor cuma berguna di perangkat berpointer halus (bukan layar sentuh). */
+function useFinePointer(): boolean {
+  const [fine, setFine] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const update = () => setFine(mq.matches && !prefersReducedMotion());
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+  return fine;
+}
+
+function Magnetic({ children, active }: { children: React.ReactNode; active: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const x = useSpring(0, { stiffness: 220, damping: 14 });
   const y = useSpring(0, { stiffness: 220, damping: 14 });
+
+  if (!active) return <div className="magnet">{children}</div>;
+
   return (
     <motion.div
       ref={ref}
@@ -27,34 +73,57 @@ function Magnetic({ children }: { children: React.ReactNode }) {
       onMouseMove={(e) => {
         if (!ref.current) return;
         const r = ref.current.getBoundingClientRect();
-        x.set((e.clientX - r.left - r.width / 2) * 0.35);
-        y.set((e.clientY - r.top - r.height / 2) * 0.35);
+        x.set((e.clientX - r.left - r.width / 2) * 0.28);
+        y.set((e.clientY - r.top - r.height / 2) * 0.28);
       }}
-      onMouseLeave={() => { x.set(0); y.set(0); }}
+      onMouseLeave={() => {
+        x.set(0);
+        y.set(0);
+      }}
     >
       {children}
     </motion.div>
   );
 }
 
-/* panel hasil yang miring ngikutin kursor */
-function Tilt({ children, ...rest }: { children: React.ReactNode; className?: string; style?: any }) {
+function Tilt({
+  children,
+  active,
+  ...rest
+}: {
+  children: React.ReactNode;
+  active: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
   const ref = useRef<HTMLElement>(null);
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
-  const rotateX = useSpring(useTransform(my, [-0.5, 0.5], [7, -7]), { stiffness: 150, damping: 16 });
-  const rotateY = useSpring(useTransform(mx, [-0.5, 0.5], [-9, 9]), { stiffness: 150, damping: 16 });
+  const rotateX = useSpring(useTransform(my, [-0.5, 0.5], [5, -5]), { stiffness: 150, damping: 16 });
+  const rotateY = useSpring(useTransform(mx, [-0.5, 0.5], [-6, 6]), { stiffness: 150, damping: 16 });
+
   return (
     <motion.section
       ref={ref}
-      style={{ rotateX, rotateY, transformPerspective: 1000 }}
-      onMouseMove={(e) => {
-        if (!ref.current) return;
-        const r = ref.current.getBoundingClientRect();
-        mx.set((e.clientX - r.left) / r.width - 0.5);
-        my.set((e.clientY - r.top) / r.height - 0.5);
-      }}
-      onMouseLeave={() => { mx.set(0); my.set(0); }}
+      style={active ? { rotateX, rotateY, transformPerspective: 1200 } : undefined}
+      onMouseMove={
+        active
+          ? (e) => {
+              if (!ref.current) return;
+              const r = ref.current.getBoundingClientRect();
+              mx.set((e.clientX - r.left) / r.width - 0.5);
+              my.set((e.clientY - r.top) / r.height - 0.5);
+            }
+          : undefined
+      }
+      onMouseLeave={
+        active
+          ? () => {
+              mx.set(0);
+              my.set(0);
+            }
+          : undefined
+      }
       {...rest}
     >
       {children}
@@ -64,24 +133,33 @@ function Tilt({ children, ...rest }: { children: React.ReactNode; className?: st
 
 export default function Home() {
   const [url, setUrl] = useState('');
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<Result | null>(null);
   const [loading, setLoading] = useState(false);
-  const [downloading, setDownloading] = useState(false);
   const [flash, setFlash] = useState(false);
   const [clock, setClock] = useState('');
   const [pIdx, setPIdx] = useState(0);
+  const [status, setStatus] = useState('');
+
+  const fine = useFinePointer();
+  const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setClock(stampNow());
     const t = setInterval(() => setClock(stampNow()), 1000);
-    const c = setInterval(() => setPIdx((i) => (i + 1) % PLATFORMS.length), 2200);
-    return () => { clearInterval(t); clearInterval(c); };
+    const c = setInterval(() => setPIdx((i) => (i + 1) % PLATFORMS.length), 2400);
+    return () => {
+      clearInterval(t);
+      clearInterval(c);
+    };
   }, []);
 
   async function pasteFromClipboard() {
     try {
-      const t = await navigator.clipboard.readText();
-      if (t) setUrl(t.trim());
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        setUrl(text.trim());
+        setStatus('Link ketempel dari clipboard.');
+      }
     } catch {
       toast('Izinkan akses clipboard dulu ya.');
     }
@@ -89,53 +167,62 @@ export default function Home() {
 
   async function handleGet(e?: React.FormEvent) {
     e?.preventDefault();
-    if (!url.trim()) { toast.error('Link-nya masih kosong.'); return; }
+    const clean = url.trim();
+    if (!clean) {
+      toast.error('Link-nya masih kosong.');
+      setStatus('Link masih kosong.');
+      return;
+    }
+
     setLoading(true);
     setData(null);
+    setStatus('Lagi ngambil videonya…');
+
     try {
-      const res = await fetch(`/api/download?url=${encodeURIComponent(url)}`);
-      if (!res.ok) throw new Error('Gagal ambil video');
-      const json = await res.json();
-      setData({
-        thumbnail: json.data.thumbnail,
-        title: json.data.title,
-        quality: 'HD · tanpa watermark',
-        downloadUrl: json.data.downloadUrl,
-      });
+      const res = await fetch(`/api/download?url=${encodeURIComponent(clean)}`);
+      const json = await res.json().catch(() => null);
+
+      if (!res.ok || !json?.success) {
+        const message = json?.message || 'Ada yang salah, coba lagi.';
+        toast.error(message);
+        setStatus(message);
+        return;
+      }
+
+      const next: Result = json.data;
+      setData(next);
       toast.success('Videonya ketemu.');
-    } catch (err: any) {
-      toast.error(err.message || 'Ada yang salah, coba lagi.');
+      setStatus(
+        `Ketemu: ${next.title} · ${QUALITY_LABEL[next.quality] ?? 'kualitas tidak diketahui'}.`,
+      );
+
+      // Auto-scroll ke kartu hasil setelah render. Ulang sekali setelah layout
+      // (thumbnail) selesai, karena tinggi kartu berubah setelah gambar masuk.
+      const scrollToResult = () => {
+        resultRef.current?.scrollIntoView({
+          behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+          block: 'start',
+        });
+      };
+      requestAnimationFrame(scrollToResult);
+      window.setTimeout(scrollToResult, 320);
+    } catch {
+      toast.error('Ga bisa nyambung ke server. Coba lagi.');
+      setStatus('Ga bisa nyambung ke server.');
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleDirectDownload() {
-    if (!data?.downloadUrl) return;
-    setDownloading(true);
-    try {
-      const res = await fetch(data.downloadUrl);
-      const blob = await res.blob();
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      // Sanitize filename: remove invalid chars, limit length
-      const sanitized = (data.title || 'video')
-        .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
-        .replace(/\s+/g, '_')
-        .substring(0, 100);
-      a.download = `${sanitized}.mp4`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-      // adegan ending: layar putih
-      setFlash(true);
-      setTimeout(() => setFlash(false), 2300);
-    } catch {
-      toast.error('Download langsung gagal.');
-    } finally {
-      setDownloading(false);
-    }
+  function handleSave() {
+    if (!data) return;
+    setFlash(true);
+    setTimeout(() => setFlash(false), 2300);
+    setStatus(`Menyimpan ${data.filename}`);
   }
-  // ⬆⬆⬆ sampai sini ⬆⬆⬆
+
+  const isImage = data?.mediaType === 'image';
+  const qualityLabel = data ? QUALITY_LABEL[data.quality] ?? 'kualitas asli' : '';
 
   return (
     <main className="eri">
@@ -143,26 +230,39 @@ export default function Home() {
         position="bottom-center"
         toastOptions={{
           style: {
-            background: '#E99B83',
-            color: '#202D49',
-            border: '2px solid #202D49',
+            background: 'var(--rose)',
+            color: 'var(--navy)',
+            border: '2px solid var(--navy)',
             borderRadius: 0,
-            fontFamily: "'Shippori Mincho B1', serif",
-            fontWeight: 500,
-            fontSize: 16,
+            fontFamily: 'var(--gothic)',
+            fontWeight: 700,
+            fontSize: 15,
           },
         }}
       />
 
-      {/* filter garis tinta goyang */}
-      <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden>
+      <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden focusable="false">
         <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
           <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="4" result="n" />
-          <feDisplacementMap in="SourceGraphic" in2="n" scale="5" />
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="4" />
         </filter>
         <filter id="roughLight" x="-3%" y="-3%" width="106%" height="106%">
           <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="9" result="n" />
-          <feDisplacementMap in="SourceGraphic" in2="n" scale="4" />
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="3" />
+        </filter>
+        <filter id="duotone" colorInterpolationFilters="sRGB">
+          <feColorMatrix
+            type="matrix"
+            values="0.2126 0.7152 0.0722 0 0
+                    0.2126 0.7152 0.0722 0 0
+                    0.2126 0.7152 0.0722 0 0
+                    0      0      0      1 0"
+          />
+          <feComponentTransfer>
+            <feFuncR type="table" tableValues="0.1255 0.8471" />
+            <feFuncG type="table" tableValues="0.1765 0.4588" />
+            <feFuncB type="table" tableValues="0.2863 0.5686" />
+          </feComponentTransfer>
         </filter>
       </svg>
 
@@ -171,24 +271,28 @@ export default function Home() {
       </div>
 
       <header className="top rise">
-        <span className="brand">Eri <i>downloader</i></span>
+        <span className="brand">
+          Eri <i>downloader</i>
+        </span>
         <time>{clock}</time>
       </header>
 
       <div className="main">
         <section className="left">
-          <p className="jp rise" style={{ '--d': '.5s' } as React.CSSProperties} aria-hidden>さよなら絵梨</p>
+          <p className="jp rise" style={{ '--d': '.5s' } as React.CSSProperties} aria-hidden>
+            さよなら絵梨
+          </p>
 
-          <h1 className="word" aria-label="Eri Downloader">
+          <h1 className="word" aria-label="Eri downloader">
             <span className="letters" aria-hidden>
               {'Eri'.split('').map((c, i) => (
                 <motion.span
                   key={i}
                   className="big"
-                  initial={{ y: '45%', opacity: 0, rotate: -7 }}
+                  initial={{ y: '40%', opacity: 0, rotate: -6 }}
                   animate={{ y: 0, opacity: 1, rotate: 0 }}
-                  transition={{ delay: 0.1 + i * 0.13, type: 'spring', stiffness: 130, damping: 13 }}
-                  whileHover={{ y: -18, rotate: i % 2 ? 5 : -5 }}
+                  transition={{ delay: 0.08 + i * 0.1, type: 'spring', stiffness: 140, damping: 14 }}
+                  whileHover={fine ? { y: -12, rotate: i % 2 ? 4 : -4 } : undefined}
                   style={{ display: 'inline-block' }}
                 >
                   {c}
@@ -201,93 +305,154 @@ export default function Home() {
             <path d="M6 24 C 60 6, 110 36, 170 18 S 280 8, 394 22" />
           </svg>
 
-          <p className="lede rise" style={{ '--d': '.35s' } as React.CSSProperties}>
+          <p className="lede rise" style={{ '--d': '.3s' } as React.CSSProperties}>
             Video{' '}
             <span className="cycle">
-              <AnimatePresence mode="wait">
+              <span className="sr-only">
+                {PLATFORMS.join(', ')}
+              </span>
+              <AnimatePresence mode="wait" initial={false}>
                 <motion.b
                   key={pIdx}
-                  initial={{ y: 22, opacity: 0 }}
+                  aria-hidden
+                  initial={{ y: 18, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -22, opacity: 0 }}
-                  transition={{ duration: 0.22 }}
+                  exit={{ y: -18, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
                 >
                   {PLATFORMS[pIdx]}
                 </motion.b>
               </AnimatePresence>
-            </span>
-            {' '}pulang <mark>HD tanpa watermark</mark>. Tempel link, tunggu sebentar, selesai.
+            </span>{' '}
+            pulang dengan <mark>kualitas terbaik yang tersedia</mark>. Tempel link, tunggu
+            sebentar, selesai.
           </p>
 
-          <form className="script rise" style={{ '--d': '.5s' } as React.CSSProperties} onSubmit={handleGet}>
+          <form
+            className="script rise"
+            style={{ '--d': '.4s' } as React.CSSProperties}
+            onSubmit={handleGet}
+          >
             <label className="line">
+              <span className="sr-only">Link video</span>
               <input
                 type="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="tempel link di sini…"
-                aria-label="Link video"
+                inputMode="url"
+                autoComplete="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                enterKeyHint="go"
               />
-              <button type="button" className="paste" onClick={pasteFromClipboard} aria-label="Tempel dari clipboard">
-                <ClipboardPaste size={22} />
+              <button
+                type="button"
+                className="paste"
+                onClick={pasteFromClipboard}
+                aria-label="Tempel link dari clipboard"
+              >
+                <ClipboardPaste size={22} aria-hidden />
               </button>
             </label>
-            <Magnetic>
-              <button className="stamp" type="submit" disabled={loading}>
-                {loading ? <Loader2 size={32} className="spinning" /> : 'ambil'}
+
+            <Magnetic active={fine}>
+              <button className="stamp" type="submit" disabled={loading} aria-label="Ambil video">
+                {loading ? <Loader2 size={30} className="spinning" aria-hidden /> : 'ambil'}
               </button>
             </Magnetic>
           </form>
+
+          <p className="status" role="status" aria-live="polite">
+            {status}
+          </p>
         </section>
 
-        <Tilt className="reel rise" style={{ '--d': '.4s' } as React.CSSProperties}>
-          <AnimatePresence mode="wait">
-            {data ? (
-              <motion.div
-                className="frame"
-                key={data.thumbnail}
-                initial={{ opacity: 0, y: 34, rotate: -3 }}
-                animate={{ opacity: 1, y: 0, rotate: 0 }}
-                exit={{ opacity: 0, y: -24, rotate: 2 }}
-                transition={{ type: 'spring', stiffness: 160, damping: 16 }}
-              >
-                <div className="ink">
-                  <div className="shot">
-                    <span className="ts">▶ {clock.split(' ')[0]}</span>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={data.thumbnail} alt={data.title || 'Thumbnail video'} />
+        <div ref={resultRef}>
+          <Tilt className="reel rise" active={fine} style={{ '--d': '.35s' } as React.CSSProperties}>
+            <AnimatePresence mode="wait" initial={false}>
+              {data ? (
+                <motion.div
+                  className="frame"
+                  key={data.downloadUrl}
+                  initial={{ opacity: 0, y: 26, rotate: -2 }}
+                  animate={{ opacity: 1, y: 0, rotate: 0 }}
+                  exit={{ opacity: 0, y: -18, rotate: 1.5 }}
+                  transition={{ type: 'spring', stiffness: 170, damping: 18 }}
+                >
+                  <div className="chips">
+                    <span className="chip solid">{qualityLabel}</span>
+                    <span className="chip">[ {PLATFORM_LABEL[data.platform] ?? data.platform} ]</span>
                   </div>
-                </div>
 
-                <div className="narr ink">
-                  <p>{data.title}</p>
-                  <small>{data.quality}</small>
-                </div>
-
-                <button className="dl ink" type="button" onClick={handleDirectDownload} disabled={downloading}>
-                  <span>{downloading ? 'mengunduh…' : 'Download langsung'}</span>
-                  <ArrowDown size={28} strokeWidth={2.6} />
-                </button>
-              </motion.div>
-            ) : (
-              <motion.div
-                className="frame"
-                key="empty"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <div className="ink">
-                  <div className="shot empty">
-                    <span className="ts">▶ {clock.split(' ')[0]}</span>
-                    <b>{loading ? '…' : 'kosong.'}</b>
-                    <span>{loading ? 'lagi merekam videonya' : 'tempel link dulu, nanti videonya muncul di sini.'}</span>
+                  <div className="ink shotwrap">
+                    <div className="shot">
+                      <span className="ts">▶ {clock.split(' ')[0]}</span>
+                      {data.thumbnail ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={data.thumbnail} alt="" />
+                      ) : (
+                        <span className="noimg" aria-hidden>
+                          絵
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Tilt>
+
+                  <div className="narr ink">
+                    <p>{data.title}</p>
+                    <small>
+                      {isImage ? 'foto · ' : 'video · '}
+                      {data.quality === 'UNKNOWN' ? 'resolusi belum diketahui' : data.quality}
+                    </small>
+                  </div>
+
+                  <a
+                    className="dl ink"
+                    href={data.downloadUrl}
+                    download={data.filename}
+                    onClick={handleSave}
+                  >
+                    <span>{isImage ? 'Simpan foto' : 'Simpan video'}</span>
+                    <ArrowDown size={26} strokeWidth={2.6} aria-hidden />
+                  </a>
+
+                  <a
+                    className="fallback"
+                    href={data.downloadUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink size={14} aria-hidden /> kalau gagal, buka di tab baru
+                  </a>
+                </motion.div>
+              ) : (
+                <motion.div
+                  className="frame"
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <div className="chips">
+                    <span className="chip">[ belum ada ]</span>
+                  </div>
+                  <div className="ink shotwrap">
+                    <div className="shot empty">
+                      <span className="ts">▶ {clock.split(' ')[0]}</span>
+                      <b>{loading ? '…' : 'kosong.'}</b>
+                      <span>
+                        {loading
+                          ? 'lagi merekam videonya'
+                          : 'tempel link dulu, nanti videonya muncul di sini.'}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Tilt>
+        </div>
       </div>
     </main>
   );
