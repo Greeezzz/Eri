@@ -142,6 +142,7 @@ export default function Home() {
 
   const fine = useFinePointer();
   const resultRef = useRef<HTMLDivElement>(null);
+  const scrollToResultRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     setClock(stampNow());
@@ -196,16 +197,19 @@ export default function Home() {
         `Ketemu: ${next.title} · ${QUALITY_LABEL[next.quality] ?? 'kualitas tidak diketahui'}.`,
       );
 
-      // Auto-scroll ke kartu hasil setelah render. Ulang sekali setelah layout
-      // (thumbnail) selesai, karena tinggi kartu berubah setelah gambar masuk.
-      const scrollToResult = () => {
-        resultRef.current?.scrollIntoView({
+      // Auto-scroll ke kartu hasil. Dihitung manual lalu diulang setelah thumbnail
+      // selesai load, karena tinggi kartu berubah saat gambar masuk.
+      scrollToResultRef.current = () => {
+        const el = resultRef.current;
+        if (!el) return;
+        const top = el.getBoundingClientRect().top + window.scrollY - 12;
+        window.scrollTo({
+          top: Math.max(0, top),
           behavior: prefersReducedMotion() ? 'auto' : 'smooth',
-          block: 'start',
         });
       };
-      requestAnimationFrame(scrollToResult);
-      window.setTimeout(scrollToResult, 320);
+      requestAnimationFrame(() => scrollToResultRef.current?.());
+      window.setTimeout(() => scrollToResultRef.current?.(), 400);
     } catch {
       toast.error('Ga bisa nyambung ke server. Coba lagi.');
       setStatus('Ga bisa nyambung ke server.');
@@ -225,7 +229,8 @@ export default function Home() {
   const qualityLabel = data ? QUALITY_LABEL[data.quality] ?? 'kualitas asli' : '';
 
   return (
-    <main className="eri">
+    <>
+      {/* Toaster di luar <main>: section-nya ikut jadi anak grid kalau ditaruh di dalam. */}
       <Toaster
         position="bottom-center"
         toastOptions={{
@@ -240,6 +245,8 @@ export default function Home() {
           },
         }}
       />
+
+      <main className="eri">
 
       <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden focusable="false">
         <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
@@ -274,6 +281,9 @@ export default function Home() {
         <span className="brand">
           Eri <i>downloader</i>
         </span>
+        <span className="top-meta" aria-hidden>
+          № 001 · edisi duotone
+        </span>
         <time>{clock}</time>
       </header>
 
@@ -305,12 +315,12 @@ export default function Home() {
             <path d="M6 24 C 60 6, 110 36, 170 18 S 280 8, 394 22" />
           </svg>
 
+          <div className="rule rise" style={{ '--d': '.28s' } as React.CSSProperties} aria-hidden />
+
           <p className="lede rise" style={{ '--d': '.3s' } as React.CSSProperties}>
             Video{' '}
             <span className="cycle">
-              <span className="sr-only">
-                {PLATFORMS.join(', ')}
-              </span>
+              <span className="sr-only">{PLATFORMS.join(', ')}</span>
               <AnimatePresence mode="wait" initial={false}>
                 <motion.b
                   key={pIdx}
@@ -366,9 +376,16 @@ export default function Home() {
           <p className="status" role="status" aria-live="polite">
             {status}
           </p>
+
+          <div className="footnote" aria-hidden>
+            <span>tiktok</span>
+            <span>instagram</span>
+            <span>facebook</span>
+            <span>youtube</span>
+          </div>
         </section>
 
-        <div ref={resultRef}>
+        <div className="result-col" ref={resultRef}>
           <Tilt className="reel rise" active={fine} style={{ '--d': '.35s' } as React.CSSProperties}>
             <AnimatePresence mode="wait" initial={false}>
               {data ? (
@@ -390,7 +407,14 @@ export default function Home() {
                       <span className="ts">▶ {clock.split(' ')[0]}</span>
                       {data.thumbnail ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={data.thumbnail} alt="" />
+                        <img
+                          src={data.thumbnail}
+                          alt=""
+                          onLoad={() => {
+                            // Tinggi kartu berubah setelah gambar masuk: rapikan posisi sekali lagi.
+                            window.setTimeout(() => scrollToResultRef.current?.(), 60);
+                          }}
+                        />
                       ) : (
                         <span className="noimg" aria-hidden>
                           絵
@@ -435,25 +459,35 @@ export default function Home() {
                   exit={{ opacity: 0 }}
                 >
                   <div className="chips">
-                    <span className="chip">[ belum ada ]</span>
+                    <span className="chip">[ standby ]</span>
                   </div>
+
                   <div className="ink shotwrap">
                     <div className="shot empty">
                       <span className="ts">▶ {clock.split(' ')[0]}</span>
-                      <b>{loading ? '…' : 'kosong.'}</b>
-                      <span>
-                        {loading
-                          ? 'lagi merekam videonya'
-                          : 'tempel link dulu, nanti videonya muncul di sini.'}
+                      {loading ? (
+                        <Loader2 size={54} className="spinning empty-spin" aria-hidden />
+                      ) : (
+                        <span className="kanji" aria-hidden>
+                          空
+                        </span>
+                      )}
+                      <span className="empty-line">
+                        {loading ? 'lagi ngambil videonya' : 'tempel link di kolom sebelah'}
                       </span>
                     </div>
                   </div>
                 </motion.div>
               )}
-            </AnimatePresence>
+          </AnimatePresence>
           </Tilt>
+
+          <p className="colophon" aria-hidden>
+            tempel · ambil · simpan
+          </p>
         </div>
       </div>
-    </main>
+      </main>
+    </>
   );
 }
