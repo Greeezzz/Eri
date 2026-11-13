@@ -1,30 +1,49 @@
-@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;800&family=Zen+Kaku+Gothic+New:wght@500;700&family=DotGothic16&display=swap');
+/* ────────────────────────────────────────────────
+   Eri · duotone editorial-manga
+   Dua warna dasar + campurannya. Tidak ada hue lain.
+   ──────────────────────────────────────────────── */
 
 :root {
-  --electric: #3979B9;
-  --cobalt: #24558F;
-  --royal: #9272B9;
-  --mauve: #BB668F;
-  --rose: #D87591;
-  --peach: #E99B83;
   --navy: #202D49;
+  --rose: #D87591;
+  --tint-1: #2F334F;
+  --tint-2: #3C3854;
+  --tint-3: #4E3F5B;
+  --shade-1: #BC6A86;
 
-  --mincho: 'Shippori Mincho B1', 'Times New Roman', serif;
-  --gothic: 'Zen Kaku Gothic New', system-ui, sans-serif;
-  --dot: 'DotGothic16', ui-monospace, monospace;
+  --mincho: var(--font-mincho), 'Times New Roman', serif;
+  --gothic: var(--font-gothic), system-ui, sans-serif;
+  --dot: var(--font-dot), ui-monospace, monospace;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+html { -webkit-text-size-adjust: 100%; }
+
 html, body {
   background: var(--navy);
-  color: var(--peach);
+  color: var(--rose);
   font-family: var(--gothic);
+  font-weight: 500;
   -webkit-font-smoothing: antialiased;
 }
+
+body { overflow-x: hidden; }
+
 ::selection { background: var(--rose); color: var(--navy); }
 
-/* screentone pudar di pojok, kayak halaman manga */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+:focus-visible {
+  outline: 3px solid var(--rose);
+  outline-offset: 3px;
+}
+
+/* ───────── tekstur halftone ───────── */
 body::before,
 body::after {
   content: '';
@@ -33,268 +52,341 @@ body::after {
   z-index: 0;
 }
 body::before {
-  top: -12vw; right: -12vw; width: 58vw; height: 58vw;
-  background: radial-gradient(circle, var(--cobalt) 1.8px, transparent 2.3px) 0 0 / 10px 10px;
-  -webkit-mask-image: radial-gradient(circle at 68% 32%, #000 0, transparent 66%);
-          mask-image: radial-gradient(circle at 68% 32%, #000 0, transparent 66%);
+  top: -30vw; right: -26vw; width: 84vw; height: 84vw;
+  background: radial-gradient(circle, var(--tint-3) 1.2px, transparent 1.7px) 0 0 / 8px 8px;
+  -webkit-mask-image: radial-gradient(circle at 62% 30%, black 0, transparent 64%);
+          mask-image: radial-gradient(circle at 62% 30%, black 0, transparent 64%);
 }
 body::after {
-  bottom: -14vw; left: -10vw; width: 44vw; height: 44vw;
-  background: radial-gradient(circle, var(--mauve) 1.5px, transparent 2px) 0 0 / 9px 9px;
-  -webkit-mask-image: radial-gradient(circle at 30% 70%, #000 0, transparent 62%);
-          mask-image: radial-gradient(circle at 30% 70%, #000 0, transparent 62%);
-  opacity: .55;
+  bottom: -30vw; left: -26vw; width: 70vw; height: 70vw;
+  background: radial-gradient(circle, var(--tint-2) 1.2px, transparent 1.7px) 0 0 / 9px 9px;
+  -webkit-mask-image: radial-gradient(circle at 32% 70%, black 0, transparent 60%);
+          mask-image: radial-gradient(circle at 32% 70%, black 0, transparent 60%);
+  opacity: .8;
 }
 
 .eri {
   position: relative; z-index: 1;
   min-height: 100svh;
-  padding: 0 clamp(18px, 4vw, 56px) 4vh;
+  padding: 0 clamp(16px, 4vw, 56px) max(20px, 4vh);
   display: grid;
   grid-template-rows: auto 1fr;
   overflow-x: clip;
 }
 
-/* garis tinta goyang (lewat filter SVG) */
+/* garis tinta kasar */
 .ink { position: relative; }
 .ink::before {
   content: '';
   position: absolute; inset: 0;
-  border: 3px solid var(--line, var(--peach));
+  border: 3px solid var(--line, var(--rose));
   filter: url(#rough);
   pointer-events: none;
   z-index: 4;
 }
 
-/* ───────── atas ───────── */
+/* ───────── header ───────── */
 .top {
   display: flex; justify-content: space-between; align-items: baseline;
-  padding: 24px 0 0;
+  gap: 12px;
+  padding: 18px 0 0;
 }
-.top .brand { font-family: var(--mincho); font-weight: 800; font-size: 18px; }
-.top .brand i { font-style: normal; color: var(--rose); }
-.top time { font-family: var(--dot); font-size: 14px; color: var(--royal); min-height: 1em; }
+.top .brand { font-family: var(--mincho); font-weight: 800; font-size: 16px; }
+.top .brand i { font-style: normal; color: var(--rose); opacity: .78; }
+.top time { font-family: var(--dot); font-size: 12px; color: var(--rose); opacity: .72; min-height: 1em; }
 
-/* ───────── isi ───────── */
+/* ───────── kolom ───────── */
 .main {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
-  gap: clamp(28px, 6vw, 96px);
-  align-items: center;
-  padding: 4vh 0 4vh;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(22px, 5vw, 56px);
+  align-content: start;
+  padding: 2vh 0 0;
 }
 
 .left { position: relative; }
 
+/* judul raksasa, kepotong di tepi layar */
 .word {
   position: relative;
-  display: flex; align-items: flex-end; gap: .08em;
+  display: flex; align-items: flex-end; gap: .06em;
   font-family: var(--mincho); font-weight: 800;
-  line-height: .78; letter-spacing: -.045em;
+  line-height: .76; letter-spacing: -.05em;
   filter: url(#roughLight);
 }
 .word .letters { display: flex; }
-.word .big { font-size: clamp(130px, 25vw, 390px); cursor: default; }
+.word .big { font-size: clamp(88px, 30vw, 140px); cursor: default; }
 .word small {
   font-family: var(--mincho); font-weight: 500;
-  font-size: clamp(20px, 3vw, 40px); letter-spacing: 0;
-  color: var(--rose);
-  transform: rotate(-7deg);
-  margin-bottom: .9em;
+  font-size: clamp(16px, 5.4vw, 26px); letter-spacing: 0;
+  color: var(--rose); opacity: .82;
+  transform: rotate(-6deg);
+  margin-bottom: .95em;
   white-space: nowrap;
 }
 
 .scribble {
-  position: absolute; left: -2%; bottom: -5%;
-  width: 70%; height: auto; overflow: visible;
+  position: absolute; left: 0; bottom: -2%;
+  width: 62%; height: auto; overflow: visible;
   pointer-events: none; z-index: -1;
 }
 .scribble path {
-  fill: none; stroke: var(--mauve); stroke-width: 12; stroke-linecap: round;
+  fill: none; stroke: var(--tint-3); stroke-width: 8; stroke-linecap: round;
   stroke-dasharray: 700; stroke-dashoffset: 700;
-  animation: draw 1.1s .7s cubic-bezier(.6, .1, .2, 1) forwards;
+  animation: draw 1.1s .6s cubic-bezier(.6, .1, .2, 1) forwards;
 }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 
 .jp {
-  position: absolute; top: -2vh; right: 0;
+  position: absolute; top: -.4em; right: 0;
   writing-mode: vertical-rl;
   font-family: var(--mincho); font-weight: 500;
-  font-size: clamp(18px, 2vw, 28px); letter-spacing: .25em;
-  color: var(--royal);
+  font-size: clamp(12px, 3.4vw, 16px); letter-spacing: .2em;
+  color: var(--rose); opacity: .45;
 }
 
 .lede {
-  margin-top: clamp(26px, 4vw, 48px);
-  max-width: 38ch;
-  font-size: clamp(16px, 1.4vw, 19px); line-height: 1.8;
+  margin-top: clamp(14px, 3vw, 26px);
+  max-width: 34ch;
+  font-size: 16px; line-height: 1.6;
+  color: var(--rose);
 }
 .lede .cycle {
-  display: inline-block; min-width: 5.6em; text-align: left; vertical-align: bottom;
-  overflow: hidden; height: 1.8em;
+  display: inline-flex;
+  min-width: 6em; height: 1.6em;
+  overflow: hidden; vertical-align: bottom;
 }
-.lede .cycle b { display: inline-block; font-family: var(--mincho); font-weight: 800; color: var(--rose); }
+.lede .cycle b {
+  display: inline-block; font-family: var(--mincho); font-weight: 800;
+  color: var(--navy); background: var(--rose);
+  padding: 0 6px; line-height: 1.5em; align-self: flex-start;
+}
 .lede mark {
-  font-weight: 700; color: var(--peach);
-  background: linear-gradient(transparent 62%, var(--mauve) 62%);
+  font-weight: 700; color: var(--rose);
+  background: none;
+  text-decoration: underline;
+  text-decoration-color: var(--tint-3);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 3px;
 }
 
-/* ───────── form: ditulis kayak naskah ───────── */
+/* ───────── form ───────── */
 .script {
-  margin-top: 34px;
-  display: flex; align-items: center; gap: 22px; flex-wrap: wrap;
+  margin-top: clamp(20px, 4vw, 34px);
+  display: flex; align-items: center; gap: 14px;
 }
-.line { position: relative; flex: 1 1 280px; display: flex; align-items: center; }
+.line { position: relative; flex: 1 1 auto; display: flex; align-items: center; min-width: 0; }
 .line input {
   flex: 1; min-width: 0;
   background: transparent; border: 0; outline: 0;
-  font-family: var(--mincho); font-weight: 500;
-  font-size: clamp(19px, 2vw, 26px); color: var(--peach);
-  padding: 14px 2px 12px;
+  font-family: var(--gothic); font-weight: 700;
+  font-size: 16px; color: var(--rose);
+  padding: 12px 0 10px;
+  min-height: 44px;
 }
-.line input::placeholder { color: var(--royal); opacity: 1; font-style: italic; }
+.line input::placeholder { color: var(--rose); opacity: .55; font-style: italic; }
+/* Garis bawah menebal saat fokus, tapi keyboard tetap butuh cincin yang jelas. */
+.line input:focus-visible {
+  outline: 3px solid var(--rose);
+  outline-offset: 6px;
+}
 .line::after {
   content: '';
   position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
-  background: var(--peach);
+  background: var(--rose);
   filter: url(#rough);
-  transition: height .2s, background .2s;
+  transition: height .18s;
   pointer-events: none;
 }
-.line:focus-within::after { height: 8px; background: var(--rose); }
+.line:focus-within::after { height: 8px; }
 
 .paste {
   flex: 0 0 auto;
   background: none; border: 0; cursor: pointer;
-  color: var(--peach); padding: 8px; display: grid; place-items: center;
-  transition: color .2s, transform .2s;
+  color: var(--rose);
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  transition: color .18s, transform .18s;
 }
-.paste:hover { color: var(--rose); transform: rotate(-8deg) scale(1.15); }
+.paste:hover { color: var(--tint-3); transform: rotate(-8deg); }
 
 .magnet { flex: 0 0 auto; display: grid; }
 .stamp {
   position: relative;
-  width: 112px; height: 112px; border-radius: 50%;
+  width: 84px; height: 84px; border-radius: 50%;
   border: 0; cursor: pointer;
   display: grid; place-items: center;
   background: var(--rose); color: var(--navy);
-  font-family: var(--mincho); font-weight: 800; font-size: 22px;
-  transform: rotate(-9deg);
+  font-family: var(--mincho); font-weight: 800; font-size: 19px;
+  transform: rotate(-8deg);
   transition: transform .25s cubic-bezier(.3, 1.6, .5, 1), background .2s;
 }
 .stamp::after {
   content: '';
-  position: absolute; inset: -7px; border-radius: 50%;
-  border: 2.5px solid var(--peach);
+  position: absolute; inset: -6px; border-radius: 50%;
+  border: 2.5px solid var(--tint-3);
   filter: url(#rough);
 }
-.stamp:hover:not(:disabled) { transform: rotate(5deg) scale(1.07); background: var(--peach); }
+.stamp:hover:not(:disabled) { transform: rotate(4deg) scale(1.06); background: var(--shade-1); }
 .stamp:active:not(:disabled) { transform: rotate(0) scale(.94); }
 .stamp:disabled { cursor: progress; }
 .stamp:disabled::after { animation: spin 1.4s linear infinite; border-style: dashed; }
 .spinning { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ───────── hasil ───────── */
+.status {
+  margin-top: 12px;
+  min-height: 1.4em;
+  font-family: var(--gothic);
+  font-size: 16px; line-height: 1.5;
+  /* Rose di atas navy = 4.48:1. Status menyampaikan info, jadi jangan dipudarkan. */
+  color: var(--rose);
+  overflow-wrap: anywhere;
+}
+
+/* ───────── kartu hasil ───────── */
 .reel {
   position: relative;
-  justify-self: end; width: min(100%, 440px);
-  padding: 26px 22px 30px;
+  justify-self: center;
+  width: 100%; max-width: 440px;
+  padding: 16px 14px 18px;
   will-change: transform;
 }
 .reel::before {
   content: '';
   position: absolute; inset: 0;
-  background: var(--cobalt);
-  transform: rotate(2.6deg);
+  background: var(--tint-2);
+  transform: rotate(2.4deg);
   z-index: 0;
 }
 .reel::after {
   content: '';
   position: absolute; inset: 0;
-  transform: rotate(2.6deg);
-  background: radial-gradient(circle, var(--electric) 1.3px, transparent 1.7px) 0 0 / 8px 8px;
-  -webkit-mask-image: linear-gradient(160deg, #000 0, transparent 60%);
-          mask-image: linear-gradient(160deg, #000 0, transparent 60%);
+  transform: rotate(2.4deg);
+  background: radial-gradient(circle, var(--tint-3) 1.2px, transparent 1.7px) 0 0 / 8px 8px;
+  -webkit-mask-image: linear-gradient(160deg, black 0, transparent 62%);
+          mask-image: linear-gradient(160deg, black 0, transparent 62%);
   z-index: 0;
+  pointer-events: none;
 }
 
-.frame { position: relative; z-index: 2; }
+.frame { position: relative; z-index: 2; display: grid; gap: 11px; }
 
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  font-family: var(--dot); font-size: 14px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 7px 11px;
+  color: var(--rose);
+  border: 2px solid var(--rose);
+  background: transparent;
+  line-height: 1.2;
+}
+.chip.solid {
+  background: var(--rose); color: var(--navy); border-color: var(--rose);
+  font-weight: 700;
+}
+
+.shotwrap { --line: var(--rose); }
 .shot {
   position: relative; overflow: hidden;
-  aspect-ratio: 4 / 5; max-height: 62svh; width: 100%;
-  background: var(--electric);
+  aspect-ratio: 4 / 5; width: 100%;
+  /* Di 360x640 kartu harus muat satu layar: chip + thumbnail + judul + tombol simpan. */
+  max-height: 38svh;
+  background: var(--tint-1);
+  display: grid; place-items: center;
 }
 .shot img {
   display: block; width: 100%; height: 100%; object-fit: cover;
-  filter: grayscale(1) contrast(1.15);
-  mix-blend-mode: multiply;
-  transition: filter .45s;
+  filter: contrast(1.1) url(#duotone);
 }
 .shot::after {
   content: '';
   position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(circle, var(--cobalt) 1.1px, transparent 1.5px) 0 0 / 6px 6px;
-  mix-blend-mode: multiply; opacity: .5;
-  transition: opacity .45s;
+  background: radial-gradient(circle, var(--navy) 1.1px, transparent 1.5px) 0 0 / 6px 6px;
+  mix-blend-mode: multiply; opacity: .45;
 }
-.shot:hover img { filter: none; mix-blend-mode: normal; }
-.shot:hover::after { opacity: 0; }
+.shot .noimg {
+  font-family: var(--mincho); font-weight: 800; font-size: 64px;
+  color: var(--tint-3);
+}
 
 .ts {
-  position: absolute; top: 10px; left: 12px; z-index: 3;
-  font-family: var(--dot); font-size: 15px; color: #fff;
-  text-shadow: 1px 1px 0 var(--navy), -1px 0 0 var(--navy);
+  position: absolute; top: 8px; left: 10px; z-index: 3;
+  font-family: var(--dot); font-size: 12px;
+  color: var(--rose);
+  background: var(--navy);
+  padding: 2px 6px;
 }
 
-.shot.empty {
-  background: var(--navy);
-  display: grid; place-content: center; text-align: center; gap: 10px;
+.shot.empty { background: var(--tint-1); text-align: center; gap: 8px; padding: 20px; }
+.shot.empty b {
+  font-family: var(--mincho); font-weight: 800; font-size: 40px;
+  letter-spacing: -.02em; position: relative; z-index: 2; line-height: 1;
 }
-.shot.empty::after { opacity: .5; mix-blend-mode: normal; }
-.shot.empty b { font-family: var(--mincho); font-weight: 800; font-size: 54px; letter-spacing: -.02em; position: relative; z-index: 2; }
-.shot.empty span:not(.ts) { font-size: 14px; position: relative; z-index: 2; padding: 0 28px; line-height: 1.6; }
+.shot.empty span:not(.ts) {
+  font-size: 13px; position: relative; z-index: 2;
+  padding: 0 12px; line-height: 1.55;
+  /* Teks instruksi, bukan hiasan: tint-3 di atas tint-1 terlalu pudar. */
+  color: var(--rose);
+  grid-column: 1;
+}
 
 .narr {
   --line: var(--navy);
-  position: absolute; z-index: 5;
-  left: -22px; bottom: -30px; max-width: 88%;
-  background: var(--peach); color: var(--navy);
-  padding: 14px 18px 16px;
-  transform: rotate(-1.4deg);
+  position: relative;
+  background: var(--rose); color: var(--navy);
+  padding: 10px 12px 11px;
+  transform: rotate(-1.2deg);
 }
 .narr::before { border-width: 2.5px; }
-.narr p { font-family: var(--mincho); font-weight: 500; font-size: 17px; line-height: 1.45; overflow-wrap: anywhere; }
-.narr small { display: block; margin-top: 8px; font-family: var(--dot); font-size: 13px; opacity: .8; }
+.narr p {
+  font-family: var(--mincho); font-weight: 700; font-size: 16px; line-height: 1.4;
+  overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.narr small { display: block; margin-top: 6px; font-family: var(--dot); font-size: 11px; opacity: .85; }
 
 .dl {
   --line: var(--navy);
   position: relative; z-index: 2;
-  margin-top: 56px; width: 100%;
-  background: var(--royal); color: var(--navy);
+  width: 100%; min-height: 56px;
+  background: var(--rose); color: var(--navy);
   border: 0; cursor: pointer;
-  padding: 20px 22px;
+  padding: 16px 18px;
   display: flex; justify-content: space-between; align-items: center;
-  font-family: var(--mincho); font-weight: 800; font-size: 22px;
-  transition: transform .2s, background .2s;
+  font-family: var(--mincho); font-weight: 800; font-size: 18px;
+  text-decoration: none;
+  transition: transform .18s, background .18s;
 }
 .dl::before { border-width: 2.5px; }
-.dl svg { transition: transform .25s; }
-.dl:hover:not(:disabled) { background: var(--rose); transform: rotate(-1deg) translateY(-3px); }
-.dl:hover:not(:disabled) svg { transform: translateY(5px); }
-.dl:disabled { cursor: progress; opacity: .7; }
+.dl svg { transition: transform .2s; }
+.dl:hover { background: var(--shade-1); transform: translateY(-2px); }
+.dl:hover svg { transform: translateY(4px); }
+.dl:active { transform: translateY(0); }
 
-/* ───────── ending: layar putih ───────── */
+.fallback {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--dot); font-size: 12px;
+  /* Ini aksi nyata saat proxy gagal, jadi harus kebaca — bukan hiasan. */
+  color: var(--rose);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  min-height: 24px;
+  padding: 2px 0;
+}
+.fallback:hover { color: var(--rose); opacity: 1; }
+
+/* ───────── ending ───────── */
 .flash {
   position: fixed; inset: 0; z-index: 100;
-  background: #fff; color: var(--navy);
+  background: var(--rose); color: var(--navy);
   display: grid; place-items: center;
   opacity: 0; pointer-events: none;
 }
 .flash span {
   font-family: var(--mincho); font-weight: 500;
-  font-size: clamp(22px, 4vw, 44px); letter-spacing: .5em; padding-left: .5em;
+  font-size: clamp(20px, 5vw, 44px); letter-spacing: .4em; padding-left: .4em;
 }
 .flash.on { animation: whiteout 2.2s ease-out forwards; }
 @keyframes whiteout {
@@ -304,41 +396,48 @@ body::after {
   100% { opacity: 0; }
 }
 
-/* ───────── masuk halaman ───────── */
-.rise { animation: rise .9s cubic-bezier(.2, .7, .2, 1) both; animation-delay: var(--d, 0s); }
-@keyframes rise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+/* ───────── masuk ───────── */
+.rise { animation: rise .8s cubic-bezier(.2, .7, .2, 1) both; animation-delay: var(--d, 0s); }
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 
-@media (max-width: 900px) {
-  .main { grid-template-columns: 1fr; padding-top: 2vh; padding-bottom: 4vh; }
-  .reel { justify-self: center; width: 100%; max-width: 440px; }
-  .word { justify-content: center; }
-  .word .letters { justify-content: center; }
-  .word .big { font-size: 38vw; }
-  .word small { font-size: 6vw; margin-bottom: 1.2em; }
-  .jp { top: 0; right: auto; left: 50%; transform: translateX(-50%); writing-mode: horizontal-tb; }
-  .scribble { left: 50%; transform: translateX(-50%); width: 90%; }
-  .lede { text-align: center; max-width: 100%; margin-left: auto; margin-right: auto; }
-  .script { flex-direction: column; width: 100%; }
-  .line { width: 100%; }
-  .stamp { margin: 0 auto; }
-  .narr { left: 50%; transform: translateX(-50%) rotate(-1.4deg); max-width: 90%; bottom: -24px; }
-  .dl { font-size: 19px; padding: 16px 18px; }
-  .shot { max-height: 58svh; }
+/* ───────── ≥600 ───────── */
+@media (min-width: 600px) {
+  .top { padding-top: 22px; }
+  .top .brand { font-size: 18px; }
+  .top time { font-size: 13px; }
+  .word .big { font-size: clamp(120px, 26vw, 200px); }
+  .word small { font-size: clamp(20px, 3vw, 34px); }
+  .lede { font-size: 16px; }
+  .line input { font-size: 18px; }
+  .stamp { width: 96px; height: 96px; font-size: 21px; }
+  .reel { padding: 24px 20px 26px; }
+  .narr p { font-size: 16px; }
+  .dl { font-size: 19px; }
 }
 
-@media (max-width: 600px) {
-  .top { flex-direction: column; align-items: flex-start; gap: 8px; }
-  .top time { font-size: 12px; }
-  .word .big { font-size: 42vw; }
-  .lede { font-size: 15px; line-height: 1.7; }
-  .line input { font-size: 18px; }
-  .stamp { width: 96px; height: 96px; font-size: 20px; }
-  .shot.empty b { font-size: 38px; }
-  .shot.empty span:not(.ts) { font-size: 13px; padding: 0 16px; }
-  .narr p { font-size: 15px; }
-  .dl { font-size: 17px; }
+/* ───────── ≥900: dua kolom ───────── */
+@media (min-width: 900px) {
+  .main {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+    align-items: center;
+    gap: clamp(40px, 5vw, 90px);
+    padding: 3vh 0 3vh;
+  }
+  .word .big { font-size: clamp(160px, 17vw, 300px); }
+  .word small { font-size: clamp(24px, 2.2vw, 38px); }
+  .lede { margin-top: 30px; font-size: 17px; max-width: 40ch; }
+  .scribble { width: 58%; bottom: -4%; }
+  .jp { font-size: 16px; }
+  .reel { justify-self: end; max-width: 420px; }
+  .line input { font-size: 19px; }
+  .status { font-size: 12.5px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .01s !important; animation-delay: 0s !important; transition: none !important; }
+  *, *::before, *::after {
+    animation-duration: .01s !important;
+    animation-delay: 0s !important;
+    transition-duration: .01s !important;
+  }
+  .scribble path { stroke-dashoffset: 0; }
 }
