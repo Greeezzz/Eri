@@ -24,7 +24,7 @@ function absolute(url: string | undefined): string | undefined {
 }
 
 export async function extractTikTok(url: string): Promise<ExtractedMedia> {
-  // 1. TikWM: hdplay = HD tanpa watermark, play = SD tanpa watermark.
+  // 1. TikWM: hdplay = varian HD terpisah, play = versi standar.
   try {
     const res = await axios.get(TIKWM, {
       params: { url, hd: 1 },
@@ -41,6 +41,14 @@ export async function extractTikTok(url: string): Promise<ExtractedMedia> {
     if (body && body.code === 0 && body.data) {
       const hd = firstString(body.data.hdplay);
       const sd = firstString(body.data.play);
+
+      // Untuk banyak video, hdplay dan play menunjuk file yang sama persis —
+      // URL-nya beda (token CDN) tapi byte-nya identik. TikWM memberi ukuran
+      // keduanya, jadi itu penanda yang bisa dipercaya. Jangan bandingkan URL.
+      const sizeSd = Number(body.data.size) || 0;
+      const sizeHd = Number(body.data.hd_size) || 0;
+      const hdIsSeparate = sizeSd > 0 && sizeHd > 0 ? sizeHd > sizeSd : Boolean(hd && sd && hd !== sd);
+
       const media = hd || sd;
 
       if (media) {
@@ -48,7 +56,8 @@ export async function extractTikTok(url: string): Promise<ExtractedMedia> {
           title: String(body.data.title || 'TikTok video').trim() || 'TikTok video',
           thumbnail: absolute(firstString(body.data.cover) || firstString(body.data.origin_cover)),
           downloadUrl: absolute(media) as string,
-          quality: hd ? 'HD' : 'SD',
+          quality: hdIsSeparate ? 'HD' : 'SD',
+          qualityNote: hdIsSeparate ? 'varian HD TikTok' : 'versi standar TikTok',
           mediaType: 'video',
           source: 'tikwm',
         };
@@ -68,7 +77,8 @@ export async function extractTikTok(url: string): Promise<ExtractedMedia> {
         title: String(res?.title || 'TikTok video').trim() || 'TikTok video',
         thumbnail: absolute(firstString(res?.thumbnail) || firstString(res?.cover)),
         downloadUrl: absolute(media) as string,
-        quality: res?.hdplay ? 'HD' : 'UNKNOWN',
+        // btch tidak memberi info resolusi, jadi jangan mengklaim HD.
+        quality: 'UNKNOWN',
         mediaType: 'video',
         source: 'btch',
       };

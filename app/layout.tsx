@@ -26,7 +26,7 @@ const dot = DotGothic16({
 export const metadata: Metadata = {
   title: 'Eri · downloader',
   description:
-    'Tempel link TikTok, Instagram, Facebook, atau YouTube. Videonya pulang dengan kualitas terbaik yang tersedia.',
+    'Tempel link TikTok, Instagram, atau Facebook. Videonya pulang dengan kualitas terbaik yang tersedia.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

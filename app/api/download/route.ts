@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     return detected.code === 'INVALID_URL'
       ? fail(new ApiError('INVALID_URL', 'Link-nya belum bener, coba cek lagi.'))
       : fail(
-          new ApiError('UNSUPPORTED_PLATFORM', 'Baru bisa TikTok, Instagram, Facebook, sama YouTube.'),
+          new ApiError('UNSUPPORTED_PLATFORM', 'Baru bisa TikTok, Instagram, sama Facebook.'),
         );
   }
 
@@ -44,6 +44,7 @@ export async function GET(request: Request) {
       thumbnail: media.thumbnail ? signMediaUrl('thumb', media.thumbnail) : null,
       downloadUrl: signMediaUrl('video', media.downloadUrl, filename),
       quality: media.quality,
+      qualityNote: media.qualityNote,
       mediaType: media.mediaType,
       source: media.source,
       filename,

@@ -1,4 +1,4 @@
-export type Platform = 'tiktok' | 'instagram' | 'facebook' | 'youtube';
+export type Platform = 'tiktok' | 'instagram' | 'facebook';
 
 export type DetectResult =
   | { ok: true; platform: Platform }
@@ -33,9 +33,6 @@ export function detectPlatform(raw: string | null | undefined): DetectResult {
   if (hostIs(host, 'instagram.com')) return { ok: true, platform: 'instagram' };
   if (hostIs(host, 'facebook.com') || hostIs(host, 'fb.com') || hostIs(host, 'fb.watch') || hostIs(host, 'fb.me')) {
     return { ok: true, platform: 'facebook' };
-  }
-  if (hostIs(host, 'youtube.com') || hostIs(host, 'youtu.be') || hostIs(host, 'youtube-nocookie.com')) {
-    return { ok: true, platform: 'youtube' };
   }
 
   return { ok: false, code: 'UNSUPPORTED_PLATFORM' };

@@ -5,7 +5,7 @@ import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from
 import { Toaster, toast } from 'sonner';
 import { ArrowDown, ClipboardPaste, ExternalLink, Loader2 } from 'lucide-react';
 
-const PLATFORMS = ['TikTok', 'Instagram', 'Facebook', 'YouTube'] as const;
+const PLATFORMS = ['TikTok', 'Instagram', 'Facebook'] as const;
 
 type Quality = 'HD' | 'SD' | 'UNKNOWN';
 
@@ -15,6 +15,7 @@ type Result = {
   thumbnail: string | null;
   downloadUrl: string;
   quality: Quality;
+  qualityNote?: string;
   mediaType: 'video' | 'image';
   filename: string;
 };
@@ -29,7 +30,6 @@ const PLATFORM_LABEL: Record<string, string> = {
   tiktok: 'tiktok',
   instagram: 'instagram',
   facebook: 'facebook',
-  youtube: 'youtube',
 };
 
 function stampNow(): string {
@@ -381,7 +381,6 @@ export default function Home() {
             <span>tiktok</span>
             <span>instagram</span>
             <span>facebook</span>
-            <span>youtube</span>
           </div>
         </section>
 
@@ -427,7 +426,7 @@ export default function Home() {
                     <p>{data.title}</p>
                     <small>
                       {isImage ? 'foto · ' : 'video · '}
-                      {data.quality === 'UNKNOWN' ? 'resolusi belum diketahui' : data.quality}
+                      {data.qualityNote ?? (data.quality === 'UNKNOWN' ? 'resolusi belum diketahui' : data.quality)}
                     </small>
                   </div>
 

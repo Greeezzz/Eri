@@ -11,6 +11,11 @@ export type ExtractedMedia = {
   quality: Quality;
   mediaType: MediaType;
   source: MediaSource;
+  /**
+   * Keterangan kualitas dari data nyata (mis. "1080p" atau "540p").
+   * Dipakai UI supaya label tidak menebak.
+   */
+  qualityNote?: string;
 };
 
 /** Bentuk data yang dikirim ke client (5.2). */
@@ -23,4 +28,5 @@ export type DownloadPayload = {
   mediaType: MediaType;
   source: MediaSource;
   filename: string;
+  qualityNote?: string;
 };
