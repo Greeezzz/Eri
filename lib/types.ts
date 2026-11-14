@@ -1,6 +1,6 @@
 export type Quality = 'HD' | 'SD' | 'UNKNOWN';
 export type MediaType = 'video' | 'image';
-export type MediaSource = 'tikwm' | 'btch' | 'instagram';
+export type MediaSource = 'tikwm' | 'btch' | 'instagram' | 'facebook';
 
 /** Hasil normalisasi dari setiap extractor, sebelum ditandatangani proxy. */
 export type ExtractedMedia = {
