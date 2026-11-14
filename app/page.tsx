@@ -279,6 +279,8 @@ export default function Home() {
 
       <header className="top rise">
         <span className="brand">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/favicon.jpg" alt="" className="brand-logo" />
           Eri <i>downloader</i>
         </span>
         <span className="top-meta" aria-hidden>
