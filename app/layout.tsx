@@ -27,6 +27,11 @@ export const metadata: Metadata = {
   title: 'Eri · downloader',
   description:
     'Tempel link TikTok, Instagram, atau Facebook. Videonya pulang dengan kualitas terbaik yang tersedia.',
+  icons: {
+    icon: '/favicon.jpg',
+    shortcut: '/favicon.jpg',
+    apple: '/favicon.jpg',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
