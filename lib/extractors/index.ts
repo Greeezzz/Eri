@@ -1,13 +1,13 @@
 import { ApiError } from '../errors';
 import type { ExtractedMedia } from '../types';
 import { extractTikTok } from './tiktok';
-import { extractInstagram } from './instagram';
+import { fetchInstagramMedia } from './instagram';
 import { extractFacebook } from './facebook';
 import type { Platform } from '../platform';
 
 const EXTRACTORS: Record<Platform, (url: string) => Promise<ExtractedMedia>> = {
   tiktok: extractTikTok,
-  instagram: extractInstagram,
+  instagram: fetchInstagramMedia,
   facebook: extractFacebook,
 };
 
@@ -17,4 +17,4 @@ export async function extractMedia(platform: Platform, url: string): Promise<Ext
   return fn(url);
 }
 
-export { extractTikTok, extractInstagram, extractFacebook };
+export { extractTikTok, fetchInstagramMedia, extractFacebook };
